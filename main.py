@@ -1,16 +1,42 @@
 import requests
 import os
+import time
 
 from bs4 import BeautifulSoup
 
 # variables and stuff
 URL = "https://sonuc.osym.gov.tr/"
 EXAMS_TO_CHECK = ["DGS", "YKS"]
-
+SLEEP_TIME = 3
 
 def send_message(message):
     TG_API_TOKEN = os.getenv("TG_API_TOKEN")
     TG_CHAT_ID = os.getenv("TG_CHAT_ID")
     requests.get(f"https://api.telegram.org/bot{TG_API_TOKEN}/sendMessage?chat_id={TG_CHAT_ID}&text={message}")
 
-send_message("test")
+while True:
+    try:
+        request_body = requests.get(URL).text
+        soup = BeautifulSoup(request_body, "html.parser")
+        last_announced_exam = soup.find('a')
+        
+        if len(EXAMS_TO_CHECK) == 0:
+            send_message("Tum sinavlar aciklandi, sistem calismayi durduruyor.")
+            break
+
+        for exam in EXAMS_TO_CHECK:
+            if exam in str(last_announced_exam).upper():
+                send_message(f"{exam} ACIKLANDI! {URL}")
+                EXAMS_TO_CHECK.remove(exam)
+            else:
+                print(f"{exam} henuz aciklanmamis.")
+        
+        time.sleep(SLEEP_TIME)
+
+    except KeyboardInterrupt:
+        break
+    except Exception as e:
+        try:
+            send_message(f"{HATA}: {str(e)}")
+        except:
+            print("internet gitti")
