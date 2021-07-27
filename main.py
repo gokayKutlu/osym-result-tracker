@@ -7,7 +7,7 @@ from bs4 import BeautifulSoup
 
 # variables and stuff
 URL = "https://sonuc.osym.gov.tr/"
-EXAMS_TO_CHECK = ["DGS", "YKS"]
+EXAMS_TO_CHECK = ["DGS", "YKS", "KPSS"]
 SLEEP_TIME = 3
 internet = True
 
@@ -30,6 +30,7 @@ def lifx_notification():
 
     requests.post('https://api.lifx.com/v1/lights/all/effects/breathe', headers=headers, data=payload)
 
+
 while True:
     try:
         request_body = requests.get(URL).text
@@ -46,7 +47,9 @@ while True:
 
         for exam in EXAMS_TO_CHECK:
             if exam in str(last_announced_exam).upper():
+                print(f"{exam} ACIKLANDI! {URL}")
                 send_message(f"{exam} ACIKLANDI! {URL}")
+                lifx_notification()
                 EXAMS_TO_CHECK.remove(exam)
             else:
                 date = datetime.strptime(datetime.now().strftime('%Y-%m-%d %H:%M:%S'), '%Y-%m-%d %H:%M:%S')
